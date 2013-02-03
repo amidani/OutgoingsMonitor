@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
 
 @Repository
