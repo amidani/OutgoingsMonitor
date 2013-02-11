@@ -1,7 +1,5 @@
-var serverAddress = "/omsrv/";
-var mthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-App.controller('EarningsCtrl', function EarningsCtrl($scope, $http, persistencejs, persistenceREST){
+/*Earnings Controller*/
+App.controller('EarningsCtrl', function EarningsCtrl($scope, $http){
 	//Init
 	$scope.earnings =  [];
 	//Load data from WS REST...

@@ -5,7 +5,6 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.amidani.labs.om.server.model.Earning;
 import org.amidani.labs.om.server.model.Outgoing;
 import org.springframework.stereotype.Repository;
 
@@ -21,17 +20,17 @@ public class OutgoingsDao {
         ObjectifyService.register(Outgoing.class);
     }
 	
-	public List<Outgoing> getOutgoings(){
-		log.info("DAO : Get outgoings");
-		Query<Outgoing> articlesList = ofy().load().type(Outgoing.class);
+	public List<Outgoing> getOutgoings(String sheetId){
+		log.info("DAO : Get outgoings by sheetId");
+		Query<Outgoing> outgoingsList = ofy().load().type(Outgoing.class).filter("sheetId", sheetId);
 		log.info("DAO : Outgoings retrieved successfuly");
-		return articlesList.list();
+		return outgoingsList.list();
 	}
 	
 	public long persistOutgoing(Outgoing outgoing){
 		log.info("DAO : Add new outgoings");
 		Key<Outgoing> key = ofy().save().entity(outgoing).now();    // async without the now();
-		log.info("DAO : Outgoings persisted successfuly with key=["+key.getId()+"]");
+		log.info("DAO : Outgoings persisted successfuly with key=["+key.getId()+"]"+outgoing.getId());
 		return key.getId();
 	}
 	
@@ -40,5 +39,16 @@ public class OutgoingsDao {
 		try{
 			ofy().delete().type(Outgoing.class).id(id);
 		}catch(Exception e){throw new Exception("Unable to delete outgoings with id = ["+id+"]", e.getCause());}
+	}
+
+	public boolean markAsSpent(long id) {
+		log.info("DAO : Mark outgoing as spent");
+		Outgoing outgoing = ofy().load().type(Outgoing.class).id(id).get();
+		if(outgoing!=null){
+			outgoing.setSpent(true);
+			persistOutgoing(outgoing);
+			return true;
+		}
+		return false;
 	}
 }

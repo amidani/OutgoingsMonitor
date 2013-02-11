@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.amidani.labs.om.server.model.Earning;
 import org.amidani.labs.om.server.model.Outgoing;
 import org.amidani.labs.om.server.service.OutgoingsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,7 @@ public class OutgoingsController {
 	public void getAllOutgoings(HttpServletRequest request, HttpServletResponse response) throws JsonGenerationException, JsonMappingException, IOException{
 		log.info("Retrieving earnings...");
 		List<Outgoing> l = outgoingsService.getOutgoings();
-		log.info("Write JSON in the output stream of the servlet");
+		log.info("Write JSON in the output stream of the servlet"+l.size());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		new ObjectMapper().writeValue(response.getOutputStream(), l);
 	}

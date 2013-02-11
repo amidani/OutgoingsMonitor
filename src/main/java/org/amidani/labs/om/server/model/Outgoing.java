@@ -3,6 +3,7 @@ package org.amidani.labs.om.server.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 
 @Entity
 public class Outgoing {
@@ -14,6 +15,12 @@ public class Outgoing {
 	private int amount;
 	@JsonProperty
 	private String type;
+	@JsonProperty
+	private boolean spent; 
+	@JsonProperty @Index
+	private String sheetId;
+	
+	public Outgoing(){}
 	
 	public Outgoing(Long id, String label, int amount, String type){
 		this.id = id;
@@ -46,6 +53,24 @@ public class Outgoing {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+
+
+	public boolean isSpent() {
+		return spent;
+	}
+
+	public void setSpent(boolean spent) {
+		this.spent = spent;
+	}
+
+	public String getSheetId() {
+		return sheetId;
+	}
+
+
+	public void setSheetId(String sheetId) {
+		this.sheetId = sheetId;
 	}
 	
 	

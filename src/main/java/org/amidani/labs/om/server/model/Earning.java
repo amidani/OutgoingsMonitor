@@ -3,6 +3,7 @@ package org.amidani.labs.om.server.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 @Entity
 public class Earning {
 	@Id
@@ -11,6 +12,8 @@ public class Earning {
 	private String label;
 	@JsonProperty
 	private int amount;
+	@JsonProperty @Index
+	private String sheetId;
 	
 	public Earning(){}
 	
@@ -37,6 +40,14 @@ public class Earning {
 	}
 	public void setAmount(int amount) {
 		this.amount = amount;
+	}
+
+	public String getSheetId() {
+		return sheetId;
+	}
+
+	public void setSheetId(String sheetId) {
+		this.sheetId = sheetId;
 	}
 
 }

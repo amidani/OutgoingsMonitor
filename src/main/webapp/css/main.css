@@ -1,15 +1,4 @@
-.row-destroy {
-	position: absolute;
-	cursor: pointer;
-	width: 20px;
-	height: 20px;
-	background: url(../img/destroy.png) no-repeat 0 0;
-}
-
-.table tr:hover .row-destroy {
-	display: block;
-}
-
-.row-destroy:hover {
-	background-position: 0 -20px;
+.done-true{
+	text-decoration: line-through;
+	color: gray;
 }

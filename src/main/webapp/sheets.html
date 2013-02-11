@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="css/bootstrap-responsive.css">
     <link rel="stylesheet" href="css/main.css">
   </head>
-  <body>
+  <body ng-controller="SheetsCtrl">
   <div class="navbar">
 	<div class="navbar-inner">
 		<div class="container">
@@ -42,30 +42,62 @@
 <div class="container-fluid">
 	<div class="row" style="margin-left:30px;">
 		
-    	<div ng-controller="SheetsCtrl" class="span2">
+    	<div class="span3">
     		<div class="well well-small">Summary</div>
     		<ul>
-    			<li>Item 1</li>
-    			<li>Item 2</li>
-    			<li>Item 3</li>
-    		</ul>
-    		<div class="well well-small">Recent sheets</div>
-    		<ul>
-    			<li>Item 1</li>
-    			<li>Item 2</li>
-    			<li>Item 3</li>
+    			<li>&sum; Earnings = <b style="color: green;">{{getTotalEarnings()}}&euro;</b></li>
+    			<li>&sum; Outgoings = <b style="color: red;">{{getTotalMonthlyOutgoings()}}&euro;</b></li>
     		</ul>
 	   	</div>
-	   	<div class="span10" style="padding-left: 20px;">
-	   	<a href="#newSheetModal" role="button" class="btn btn-primary" data-toggle="modal"><i class="icon-white icon-plus-sign"></i>&nbsp; New sheet</a>
-	   	<br/>
-	   		fsfqdsf
-	   	</div>
+	   	<div class="span9" style="padding-left: 20px;">
+	   	
+		   	<div ng-show="errMsgSheet != ''" class="alert alert-error">
+	   			<button type="button" class="close" data-dismiss="alert">&times;</button>
+				<strong>Attention!</strong>&nbsp;{{errMsgSheet}}
+			</div>
+			<div ng-show="warnMsgSheet != ''" class="alert">
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+				<strong>Attention!</strong>&nbsp;{{warnMsgSheet}}
+		   	</div>
+		   	<div ng-show="currentSheet.id==null">
+		   		<a href="#newSheetModal" role="button" class="btn btn-primary" data-toggle="modal"><i class="icon-white icon-plus-sign"></i>&nbsp; New sheet</a>
+		   	</div>
+		   	<div ng-show="currentSheet.id!=null">
+		   		<h3>{{currentSheet.name}}</h3>
+		   		<hr>
+		   		<div class="row">
+			   		<div class="span4">
+				  		<table class="table table-hover table-condensed">
+				  			<thead><tr><th colspan="3">Earnings</th></tr></thead>
+				  			<tbody>
+				  			<tr ng-repeat="earning in currentSheet.earnings"><td>{{earning.label}}</td><td>{{earning.amount}}&euro;</td>
+				  			<td><a href="#" ng:click="removeEarning(earning)"><i class="icon-trash"></i></a></td></tr>
+				  			<tr><td>&nbsp;</td><th colspan="2" style="color: green;">Total : {{getTotalEarnings()}}&euro;</th></tr>
+				  			</tbody>
+				  		</table>
+			  		</div>
+			  		<div class="span4">
+				  		<table class="table table-hover table-condensed">
+				  			
+				  			<thead><tr><th colspan="2">Monthly Outgoings</th></tr></thead>
+				  			<tbody>
+				  			<tr ng-repeat="outgoing in currentSheet.outgoings | filter:{type:'M'}">
+				  				<td><input type="checkbox" ng-click="markOutgoingAsSpent(outgoing)" ng-model="outgoing.spent"/></td>
+				  				<td><span class="done-{{outgoing.spent}}">{{outgoing.label}}</span></td>
+				  				<td><span class="done-{{outgoing.spent}}">{{outgoing.amount}}</span>&euro;</td>
+				  				<td><a href="#" ng:click="removeOutgoing(outgoing)"><i class="icon-trash"></i></a></td></tr>
+				  			<tr><td colspan="2">&nbsp;</td><th colspan="2" style="color: green;">Total : {{getTotalMonthlyOutgoings()}}&euro;</th></tr>
+				  			</tbody>
+				  		</table>
+				  	</div>
+		  		</div>
+		   	</div>
+		 </div>	
 	</div>
 </div>
 
 <!-- Modal -->
-<div id="newSheetModal" ng-controller="SheetsCtrl" class="modal hide fade" tabindex="-1" 
+<div id="newSheetModal" class="modal hide fade" tabindex="-1" 
 		role="dialog" aria-labelledby="newSheetLabel" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -73,10 +105,11 @@
   </div>
   <div class="modal-body">
     <p>{{currentMonth}}</p>
+    <div class="alert alert-info">The configured earnings and outgoings will be added to the new sheet.</div> 
   </div>
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary">Save</button>
+    <button class="btn btn-primary" ng-click="addSheet()" data-dismiss="modal">Save</button>
   </div>
 </div>
 </body>

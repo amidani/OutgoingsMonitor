@@ -20,11 +20,11 @@ public class EarningsDao {
         ObjectifyService.register(Earning.class);
     }
 	
-	public List<Earning> getEarnings(){
-		log.info("DAO : Get earnings");
-		Query<Earning> articlesList = ofy().load().type(Earning.class);
+	public List<Earning> getEarnings(String sheetId){
+		log.info("DAO : Get earnings by sheetId");
+		Query<Earning> earningsList = ofy().load().type(Earning.class).filter("sheetId", sheetId);
 		log.info("DAO : Earnings retrieved successfuly");
-		return articlesList.list();
+		return earningsList.list();
 	}
 	
 	public long persistEarning(Earning earning){

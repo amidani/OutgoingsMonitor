@@ -18,7 +18,7 @@ Logger log = Logger.getLogger(this.getClass().getName());
 	
 	public List<Outgoing> getOutgoings(){
 		log.info("SRV : Get outgoings");
-		return outgoingsDao.getOutgoings();
+		return outgoingsDao.getOutgoings(null);
 	}
 	
 	public long addOutgoing(String label, int amount, String type){

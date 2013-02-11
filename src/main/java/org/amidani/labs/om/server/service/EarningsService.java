@@ -17,7 +17,7 @@ public class EarningsService {
 	
 	public List<Earning> getEarnings(){
 		log.info("SRV : Get earnings");
-		return earningsDao.getEarnings();
+		return earningsDao.getEarnings(null);
 	}
 	
 	public long addEarning(String label, int amount){
