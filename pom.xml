@@ -37,6 +37,12 @@
 			<groupId>com.googlecode.objectify</groupId>
 			<artifactId>objectify</artifactId>
 			<version>4.0b1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>gwt-user</artifactId>
+					<groupId>com.google.gwt</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- GAE libraries for local testing as described here: http://code.google.com/appengine/docs/java/howto/unittesting.html -->
 		<dependency>

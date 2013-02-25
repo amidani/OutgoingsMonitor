@@ -33,6 +33,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationSe
 		$http({method: 'PUT', url: url}).
 	      success(function(data, status) {
 	    	  $scope.currentSheet = data;
+	    	  $scope.sheetId = data.id;
 	    	  console.log("Sheet added successfuly with id=["+data.id+"]");
 	    	  $scope.warnMsgSheet = (data.id==null?'No sheet added for the current month!':'');
 	      	  $scope.errMsgSheet = '';
