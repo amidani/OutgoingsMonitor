@@ -20,9 +20,12 @@ public class EarningsService {
 		return earningsDao.getEarnings(null);
 	}
 	
-	public long addEarning(String label, int amount){
+	public long addEarning(String label, int amount, String sheetId){
 		log.info("SRV : Add new earnings");
-		return earningsDao.persistEarning(new Earning(null, label, amount));
+		Earning earning = new Earning(null, label, amount);
+		if(sheetId!=null)
+			earning.setSheetId(sheetId);
+		return earningsDao.persistEarning(earning);
 	}
 
 	public boolean removeEarning(Long id) {

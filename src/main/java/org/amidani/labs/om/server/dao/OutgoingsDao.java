@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import org.amidani.labs.om.server.model.Outgoing;
 import org.springframework.stereotype.Repository;
 
+import com.google.appengine.api.users.UserServiceFactory;
+import com.google.appengine.repackaged.com.google.common.base.StringUtil;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
@@ -22,12 +24,21 @@ public class OutgoingsDao {
 	
 	public List<Outgoing> getOutgoings(String sheetId){
 		log.info("DAO : Get outgoings by sheetId");
-		Query<Outgoing> outgoingsList = ofy().load().type(Outgoing.class).filter("sheetId", sheetId);
+		Query<Outgoing> outgoingsList;
+		if(StringUtil.isEmptyOrWhitespace(sheetId)){
+			String userId = UserServiceFactory.getUserService().getCurrentUser().getUserId();
+			outgoingsList = ofy().load().type(Outgoing.class).filter("userId", userId).filter("sheetId", null);
+		}else{
+			outgoingsList = ofy().load().type(Outgoing.class).filter("sheetId", sheetId);
+		}
+			
 		log.info("DAO : Outgoings retrieved successfuly");
 		return outgoingsList.list();
 	}
 	
 	public long persistOutgoing(Outgoing outgoing){
+		String userId = UserServiceFactory.getUserService().getCurrentUser().getUserId();
+		outgoing.setUserId(userId);
 		log.info("DAO : Add new outgoings");
 		Key<Outgoing> key = ofy().save().entity(outgoing).now();    // async without the now();
 		log.info("DAO : Outgoings persisted successfuly with key=["+key.getId()+"]"+outgoing.getId());
@@ -45,9 +56,9 @@ public class OutgoingsDao {
 		log.info("DAO : Mark outgoing as spent");
 		Outgoing outgoing = ofy().load().type(Outgoing.class).id(id).get();
 		if(outgoing!=null){
-			outgoing.setSpent(true);
+			outgoing.setSpent(!outgoing.isSpent());
 			persistOutgoing(outgoing);
-			return true;
+			return outgoing.isSpent();
 		}
 		return false;
 	}

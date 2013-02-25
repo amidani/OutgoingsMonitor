@@ -13,6 +13,7 @@ import org.amidani.labs.om.server.model.Outgoing;
 import org.amidani.labs.om.server.model.Sheet;
 import org.springframework.stereotype.Repository;
 
+import com.google.appengine.api.users.UserServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
@@ -20,15 +21,16 @@ import com.googlecode.objectify.cmd.Query;
 @Repository
 public class SheetsDao {
 	
-Logger log = Logger.getLogger(this.getClass().getName());
-	
+	Logger log = Logger.getLogger(this.getClass().getName());
+		
 	static {
         ObjectifyService.register(Sheet.class);
     }
 	
 	public List<Sheet> getSheets(){
 		log.info("DAO : Get sheets");
-		Query<Sheet> sheetsList = ofy().load().type(Sheet.class);
+		String userId = UserServiceFactory.getUserService().getCurrentUser().getUserId();
+		Query<Sheet> sheetsList = ofy().load().type(Sheet.class).filter("userId", userId);
 		log.info("DAO : Sheets retrieved successfuly");
 		return sheetsList.list();
 	}
@@ -41,8 +43,6 @@ Logger log = Logger.getLogger(this.getClass().getName());
 	}
 	
 	public Sheet persistSheet(Sheet sheet){
-		String sheetId = new SimpleDateFormat("MM-yyyy").format(new Date());
-		sheet.setId(sheetId); 
 		log.info("DAO : Add and init new sheet");
 		Key<Sheet> key = ofy().save().entity(sheet).now();    // async without the now();
 		log.info("DAO : Sheets persisted successfuly with key=["+key.getId()+"]");
@@ -52,7 +52,4 @@ Logger log = Logger.getLogger(this.getClass().getName());
 		
 		return sheet;
 	}
-	
-	
-
 }

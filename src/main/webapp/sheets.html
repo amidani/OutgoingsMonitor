@@ -10,11 +10,12 @@
     <script src="http://code.angularjs.org/1.0.4/angular-resource.min.js"></script>
     
     <script src="js/booter.js"></script>
+    <script src="js/services/homeSRV.js"></script>
+    <script src="js/controllers/home.js"></script>
     <script src="js/controllers/sheet.js"></script>
-    <script src="js/services.js"></script>
     
     <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/bootstrap-responsive.css">
+    <link rel="style<br/>sheet" href="css/bootstrap-responsive.css">
     <link rel="stylesheet" href="css/main.css">
   </head>
   <body ng-controller="SheetsCtrl">
@@ -28,28 +29,38 @@
 			<ul class="nav">
 				<li><a href="index.html"><i	class="icon-home"></i>&nbsp;Home</a></li>
 				<li class="active"><a href="sheets.html"><i class="icon-list-alt"></i>&nbsp;Sheets</a></li>
-				<li><a href="parameters.html"><i class="icon-wrench"></i>&nbsp;Parameters</a></li>
+				<li><a href="settings.html"><i class="icon-wrench"></i>&nbsp;Settings</a></li>
 			</ul>
-
-			<form class="navbar-search pull-right">
-				<input type="text" class="search-query" placeholder="Search">
-				<span><i class="icon-search"></i></span>
-			</form>
-
+			<div ng-controller="HomeCtrl">
+			<ul class="nav pull-right" ng-show="loggedIn">
+				<li><a href="#" ng-click="disconnect()"><i class="icon-off"></i>&nbsp;Logout</a></li>
+			</ul>
+			</div>
 		</div>
 	</div>
 </div>
 <div class="container-fluid">
-	<div class="row" style="margin-left:30px;">
+	<div ng-controller="HomeCtrl">
+		<i class="icon-user"></i>&nbsp;You're logged as <b>{{email}}</b>
+	</div>
+	<br/>
+	<div class="row" style="margin-left:30px;margin-top:10px;">
 		
     	<div class="span3">
     		<div class="well well-small">Summary</div>
     		<ul>
     			<li>&sum; Earnings = <b style="color: green;">{{getTotalEarnings()}}&euro;</b></li>
-    			<li>&sum; Outgoings = <b style="color: red;">{{getTotalMonthlyOutgoings()}}&euro;</b></li>
+    			<li>&sum; Outgoings = <b style="color: red;">{{getTotalOtherOutgoings()+getTotalMonthlyOutgoings()}}&euro;</b>
+    				<ul>
+    					<li>Monthly = <b style="color: red;">{{getTotalMonthlyOutgoings()}}&euro;</b></li>
+    					<li>Other   = <b style="color: red;">{{getTotalOtherOutgoings()}}&euro;</b></li>
+    					<li>Spent   = <b style="color: red;">{{getTotalSpentOutgoings(true)}}&euro;</b>
+    					<li>Coming  = <b style="color: red;">{{getTotalSpentOutgoings(false)}}&euro;</b>
+    				</ul>
+    			</li>
     		</ul>
 	   	</div>
-	   	<div class="span9" style="padding-left: 20px;">
+	   	<div class="span10" style="padding-left: 20px;">
 	   	
 		   	<div ng-show="errMsgSheet != ''" class="alert alert-error">
 	   			<button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -66,37 +77,41 @@
 		   		<h3>{{currentSheet.name}}</h3>
 		   		<hr>
 		   		<div class="row">
-			   		<div class="span4">
-				  		<table class="table table-hover table-condensed">
-				  			<thead><tr><th colspan="3">Earnings</th></tr></thead>
-				  			<tbody>
-				  			<tr ng-repeat="earning in currentSheet.earnings"><td>{{earning.label}}</td><td>{{earning.amount}}&euro;</td>
-				  			<td><a href="#" ng:click="removeEarning(earning)"><i class="icon-trash"></i></a></td></tr>
-				  			<tr><td>&nbsp;</td><th colspan="2" style="color: green;">Total : {{getTotalEarnings()}}&euro;</th></tr>
-				  			</tbody>
-				  		</table>
-			  		</div>
-			  		<div class="span4">
-				  		<table class="table table-hover table-condensed">
-				  			
-				  			<thead><tr><th colspan="2">Monthly Outgoings</th></tr></thead>
-				  			<tbody>
-				  			<tr ng-repeat="outgoing in currentSheet.outgoings | filter:{type:'M'}">
-				  				<td><input type="checkbox" ng-click="markOutgoingAsSpent(outgoing)" ng-model="outgoing.spent"/></td>
-				  				<td><span class="done-{{outgoing.spent}}">{{outgoing.label}}</span></td>
-				  				<td><span class="done-{{outgoing.spent}}">{{outgoing.amount}}</span>&euro;</td>
-				  				<td><a href="#" ng:click="removeOutgoing(outgoing)"><i class="icon-trash"></i></a></td></tr>
-				  			<tr><td colspan="2">&nbsp;</td><th colspan="2" style="color: green;">Total : {{getTotalMonthlyOutgoings()}}&euro;</th></tr>
-				  			</tbody>
-				  		</table>
-				  	</div>
+		   			<a href="#newEarningModal" role="button" class="btn btn-primary" data-toggle="modal"><i class="icon-white icon-plus-sign"></i>Add</a>
+			  		<br/>
+			  		<table class="table table-hover table-condensed">
+			  			<thead><tr><th colspan="3">Earnings</th></tr></thead>
+			  			<tbody>
+			  			<tr ng-repeat="earning in currentSheet.earnings"><td>{{earning.label}}</td><td>{{earning.amount}}&euro;</td>
+			  			<td><a href="#" ng:click="removeEarning(earning)"><i class="icon-trash"></i></a></td></tr>
+			  			<tr><td>&nbsp;</td><th colspan="2" style="color: green;">Total : {{getTotalEarnings()}}&euro;</th></tr>
+			  			</tbody>
+			  		</table>
 		  		</div>
+		  		<div class="row">
+		  			<a href="#newOutgoingModal" role="button" class="btn btn-primary" data-toggle="modal"><i class="icon-white icon-plus-sign"></i>Add</a>
+				     <br/>
+			  		<table class="table table-hover table-condensed">
+			  			
+			  			<thead><tr><th colspan="2">Outgoings</th></tr></thead>
+			  			<tbody>
+			  			<tr ng-repeat="outgoing in currentSheet.outgoings">
+			  				<td><input type="checkbox" ng-click="markOutgoingAsSpent(outgoing)" ng-model="outgoing.spent"/></td>
+			  				<td><span class="done-{{outgoing.spent}}">{{outgoing.label}}</span></td>
+			  				<td><span class="done-{{outgoing.spent}}">{{outgoing.amount}}</span>&euro;</td>
+			  				<td ng-show="outgoing.type == 'M'"><span class="done-{{outgoing.spent}}">Monthly</span></td>
+			  				<td ng-show="outgoing.type == 'O'"><span class="done-{{outgoing.spent}}">Other</span></td>
+			  				<td><a href="#" ng:click="removeOutgoing(outgoing)"><i class="icon-trash"></i></a></td></tr>
+			  			<tr><td colspan="3">&nbsp;</td><th colspan="2" style="color: red;">Total : {{getTotalOtherOutgoings()+getTotalMonthlyOutgoings()}}&euro;</th></tr>
+			  			</tbody>
+			  		</table>			  		
+			  	</div>
 		   	</div>
 		 </div>	
 	</div>
 </div>
 
-<!-- Modal -->
+<!-- Modal New Sheet-->
 <div id="newSheetModal" class="modal hide fade" tabindex="-1" 
 		role="dialog" aria-labelledby="newSheetLabel" aria-hidden="true">
   <div class="modal-header">
@@ -112,5 +127,53 @@
     <button class="btn btn-primary" ng-click="addSheet()" data-dismiss="modal">Save</button>
   </div>
 </div>
+
+<!-- Modal Add Earning -->
+<div id="newEarningModal" class="modal hide fade" tabindex="-1" 
+		role="dialog" aria-labelledby="newEarningLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3 id="newEarningLabel">Add earning</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form">
+      	<label><b>Label</b></label>
+      	<input type="text" ng-model="label" placeholder="Enter a label here"/>
+      	<label><b>Amount</b></label>
+      	<input type="number" ng-model="amount" placeholder="Enter the amount here"/>
+     </form> 
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="addEarning()" data-dismiss="modal">Save</button>
+  </div>
+</div>
+
+<!-- Modal Add Outgoing -->
+<div id="newOutgoingModal" class="modal hide fade" tabindex="-1" 
+		role="dialog" aria-labelledby="newOutgoingLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3 id="newOutgoingLabel">Add outgoing</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form">
+      	<label><b>Label</b></label>
+      	<input type="text" ng-model="label" placeholder="Enter a label here"/>
+      	<label><b>Amount</b></label>
+      	<input type="number" ng-model="amount" placeholder="Enter the amount here"/>
+      	<select ng-model="type">
+      		<option value="">Type</option>
+      		<option value="M">Monthly</option>
+      		<option value="O">Other</option>
+      	</select>
+     </form> 
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button class="btn btn-primary" ng-click="addOutgoing()" data-dismiss="modal">Save</button>
+  </div>
+</div>
+
 </body>
 </html>

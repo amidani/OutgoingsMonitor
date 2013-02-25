@@ -41,7 +41,15 @@ public class EarningsController {
 	@RequestMapping(method=RequestMethod.PUT, value="/add/{label}/{amount}")
 	public void addEarning(@PathVariable String label, @PathVariable int amount, HttpServletResponse response) throws JsonGenerationException, JsonMappingException, IOException{
 		log.info("Add new earnings...");
-		long id = earningsService.addEarning(label, amount);
+		long id = earningsService.addEarning(label, amount, null);
+		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		new ObjectMapper().writeValue(response.getOutputStream(),id);
+	}
+	
+	@RequestMapping(method=RequestMethod.PUT, value="/addToSheet/{label}/{amount}/{sheetId}")
+	public void addEarningToSheet(@PathVariable String label, @PathVariable int amount, @PathVariable String sheetId, HttpServletResponse response) throws JsonGenerationException, JsonMappingException, IOException{
+		log.info("Add new earnings...");
+		long id = earningsService.addEarning(label, amount, sheetId);
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		new ObjectMapper().writeValue(response.getOutputStream(),id);
 	}

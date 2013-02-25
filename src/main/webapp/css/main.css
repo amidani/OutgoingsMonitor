@@ -2,3 +2,18 @@
 	text-decoration: line-through;
 	color: gray;
 }
+
+.imgLink:hover, .imgLink:focus {
+	-webkit-transform: scale(1.2);
+	-moz-transform: scale(1.2);
+	-ms-transform: scale(1.2);
+	-o-transform: scale(1.2);
+	transform: scale(1.2);
+	
+	-webkit-box-shadow: 0 0 5px#888;
+	-moz-box-shadow: 0 0 5px #888;
+	-ms-box-shadow: 0 0 5px#888;
+	-o-box-shadow: 0 0 5px#888;
+	box-shadow: 0 0 5px #888;
+
+}

@@ -18,6 +18,7 @@ App.controller('EarningsCtrl', function EarningsCtrl($scope, $http){
 	      });	
 	};
 	this.loadEarnings();
+	
 	$scope.addEarning = function (){
 		if($scope.label=='' || $scope.amount==null){
 			$scope.errMsgEarning = 'Please make sure you fill all required inputs!';

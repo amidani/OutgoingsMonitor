@@ -1,29 +1,14 @@
 /*Sheets Controller*/
-App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
+App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationService){
 	$scope.currentSheet;
+	$scope.sheetId;
 	
 	var dt=new Date();
 	$scope.currentMonth = mthNames[dt.getMonth()]+" "+dt.getFullYear();
-	$scope.sheetId = dt.getMonth()+"-"+dt.getFullYear();
 	$scope.errMsgSheet = '';
 	$scope.warnMsgSheet = '';
 	
-	this.checkAuth = function(){
-		var url = serverAddress+"auth/check";
-		$http({method: 'GET', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Logged "+data+"  Status "+status);
-	    	  //window.location = data;
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  if(status=='401'){
-	    		  window.location=data;
-	    	  }
-	      });	
-	};
-	
-	this.checkAuth();
+	//authenticationService.checkAuth(this);
 	
 	//Load data from WS REST...
 	this.loadCurrentSheet = function(){
@@ -33,6 +18,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
 	      success(function(data, status) {
 	    	  console.log("Current sheet retrieved successfuly.");
 	    	  $scope.currentSheet = data;
+	    	  $scope.sheetId = data.id;
 	    	  $scope.warnMsgSheet = (data.id==null?'No sheet added for the current month!':'');
 	      }).
 	      error(function(data, status) {
@@ -56,16 +42,60 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
 	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
 	      });
     };
-    
-    $scope.markOutgoingAsSpent = function (outgoing){
-		var url = serverAddress+"sheets/markspent/"+outgoing.id;
+    /*Sheet's Earnings*/
+    $scope.addEarning = function (){
+		if($scope.label=='' || $scope.amount==null){
+			$scope.warnMsgSheet = 'Please make sure you fill all required inputs!';
+			return;
+		}
+    	//persistenceREST.addEarning($scope.label, $scope.amount);
+		var url = serverAddress+"earnings/addToSheet/"+$scope.label+"/"+$scope.amount+"/"+$scope.sheetId;
 		$http({method: 'PUT', url: url}).
 	      success(function(data, status) {
-	    	  for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
-	      		if($scope.currentSheet.outgoings[i].id===outgoing.id)
-	      			$scope.currentSheet.outgoings[i].spent=true;
-	      	  }
-	    	  console.log("Outgoing marked as spent successfuly with id=["+outgoing.id+"]"+data);
+	    	  console.log("Earning added to the current successfuly with id=["+data+"]");
+	    	  $scope.currentSheet.earnings.push({id:data, label:$scope.label, amount:$scope.amount, sheetId:$scope.sheetId});
+	    	  $scope.label="";
+	      	  $scope.amount=null;
+	      	  $scope.errMsgSheet = '';
+	      }).
+	      error(function(data, status) {
+	    	  console.log("Request failed [Status : "+status+"]");
+	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
+	      });
+    };
+    $scope.removeEarning = function (earning){
+    	var url = serverAddress+"earnings/delete/"+earning.id;
+		$http({method: 'DELETE', url: url}).
+	      success(function(data, status) {
+	    	  if(data){
+	    		  console.log("Earning deleted successfuly.");
+	    		  $scope.currentSheet.earnings.splice($scope.currentSheet.earnings.indexOf(earning), 1);
+	    		  $scope.errMsgSheet = '';
+	    	  }else{
+	    		  $scope.errMsgSheet = 'Unable to delete earning with id['+earning.id+'].';
+	    	  }  
+	      }).
+	      error(function(data, status) {
+	    	  console.log("Request failed [Status : "+status+"]");
+	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
+	      });
+    };
+    
+    /*Sheet's Outgoings*/   
+    $scope.addOutgoing = function (){
+    	if($scope.label=='' || $scope.amount==null){
+			$scope.warnMsgSheet = 'Please make sure you fill all required inputs!';
+			return;
+		}
+    	//persistenceREST.addEarning($scope.label, $scope.amount);
+		var url = serverAddress+"outgoings/addToSheet/"+$scope.label+"/"+$scope.amount+"/"+$scope.type+"/"+$scope.sheetId;
+		$http({method: 'PUT', url: url}).
+	      success(function(data, status) {
+	    	  console.log("Outgoing added successfuly with id=["+data+"]");
+	    	  $scope.currentSheet.outgoings.push({id:data, label:$scope.label, amount:$scope.amount, type:$scope.type, sheetId:$scope.sheetId, spent:false});
+	    	  $scope.label="";
+	      	  $scope.amount=null;
+	      	  $scope.type="";
 	      	  $scope.errMsgSheet = '';
 	      }).
 	      error(function(data, status) {
@@ -74,9 +104,40 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
 	      });
     };
     
+    $scope.removeOutgoing = function (outgoing){
+    	var url = serverAddress+"outgoings/delete/"+outgoing.id;
+		$http({method: 'DELETE', url: url}).
+	      success(function(data, status) {
+	    	  if(data){
+	    		  console.log("Outgoing deleted successfuly.");
+	    		  $scope.currentSheet.outgoings.splice($scope.currentSheet.outgoings.indexOf(outgoing), 1);
+	    		  $scope.errMsgSheet = '';
+	    	  }else{
+	    		  $scope.errMsgSheet = 'Unable to delete outgoing with id['+outgoing.id+'].';
+	    	  }  
+	      }).
+	      error(function(data, status) {
+	    	  console.log("Request failed [Status : "+status+"]");
+	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
+	      });
+    };
+    
+    $scope.markOutgoingAsSpent = function (outgoing){
+		var url = serverAddress+"sheets/markspent/"+outgoing.id;
+		$http({method: 'PUT', url: url}).
+	      success(function(data, status) {
+	    	  console.log("Outgoing marked as spent successfuly with id=["+outgoing.id+"]");
+	      	  $scope.errMsgSheet = '';
+	      }).
+	      error(function(data, status) {
+	    	  console.log("Request failed [Status : "+status+"]");
+	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
+	      });
+    };  
+    
     $scope.getTotalEarnings = function (){
     	var sum = 0;
-    	if($scope.currentSheet!=undefined){
+    	if($scope.currentSheet){
 	    	for (var i=0;i<$scope.currentSheet.earnings.length;i++){
 	    		sum+=$scope.currentSheet.earnings[i].amount;
 	    	}
@@ -86,7 +147,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
     
     $scope.getTotalMonthlyOutgoings = function (){
     	var sum = 0;
-    	if($scope.currentSheet!=undefined){
+    	if($scope.currentSheet){
 	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
 	    		if($scope.currentSheet.outgoings[i].type==="M")
 	    			sum+=$scope.currentSheet.outgoings[i].amount;
@@ -94,4 +155,27 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http){
     	}
     	return sum;
     };
+    
+    $scope.getTotalOtherOutgoings = function (){
+    	var sum = 0;
+    	if($scope.currentSheet){
+	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
+	    		if($scope.currentSheet.outgoings[i].type==="O")
+	    			sum+=$scope.currentSheet.outgoings[i].amount;
+	    	}
+    	}
+    	return sum;
+    };
+    
+    $scope.getTotalSpentOutgoings = function (flag){
+    	var sum = 0;
+    	if($scope.currentSheet){
+	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
+	    		if($scope.currentSheet.outgoings[i].spent===flag)
+	    			sum+=$scope.currentSheet.outgoings[i].amount;
+	    	}
+    	}
+    	return sum;
+    };
+    
 });

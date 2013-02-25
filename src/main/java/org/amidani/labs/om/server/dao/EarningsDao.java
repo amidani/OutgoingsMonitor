@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import org.amidani.labs.om.server.model.Earning;
 import org.springframework.stereotype.Repository;
 
+import com.google.appengine.api.users.UserServiceFactory;
+import com.google.appengine.repackaged.com.google.common.base.StringUtil;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
@@ -22,14 +24,22 @@ public class EarningsDao {
 	
 	public List<Earning> getEarnings(String sheetId){
 		log.info("DAO : Get earnings by sheetId");
-		Query<Earning> earningsList = ofy().load().type(Earning.class).filter("sheetId", sheetId);
+		Query<Earning> earningsList;
+		if(StringUtil.isEmptyOrWhitespace(sheetId)){
+			String userId = UserServiceFactory.getUserService().getCurrentUser().getUserId();
+			earningsList = ofy().load().type(Earning.class).filter("userId", userId).filter("sheetId", null);
+		}else{
+			earningsList = ofy().load().type(Earning.class).filter("sheetId", sheetId);
+		}
 		log.info("DAO : Earnings retrieved successfuly");
 		return earningsList.list();
 	}
 	
 	public long persistEarning(Earning earning){
+		String userId = UserServiceFactory.getUserService().getCurrentUser().getUserId();
+		earning.setUserId(userId);
 		log.info("DAO : Add new earnings");
-		Key<Earning> key = ofy().save().entity(earning).now();    // async without the now();
+		Key<Earning> key = ofy().save().entity(earning).now();// async without the now();
 		log.info("DAO : Earnings persisted successfuly with key=["+key.getId()+"]");
 		return key.getId();
 	}
@@ -40,5 +50,4 @@ public class EarningsDao {
 			ofy().delete().type(Earning.class).id(id);
 		}catch(Exception e){throw new Exception("Unable to delete earnings with id = ["+id+"]", e.getCause());}
 	}
-
 }

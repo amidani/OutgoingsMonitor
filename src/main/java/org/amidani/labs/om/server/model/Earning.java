@@ -14,6 +14,8 @@ public class Earning {
 	private int amount;
 	@JsonProperty @Index
 	private String sheetId;
+	@JsonProperty @Index
+	private String userId;
 	
 	public Earning(){}
 	
@@ -48,6 +50,14 @@ public class Earning {
 
 	public void setSheetId(String sheetId) {
 		this.sheetId = sheetId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 }

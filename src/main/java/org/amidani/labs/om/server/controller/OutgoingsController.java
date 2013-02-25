@@ -42,7 +42,16 @@ public class OutgoingsController {
 	public void addOutgoing(@PathVariable String label, @PathVariable int amount, @PathVariable String type, 
 							HttpServletResponse response) throws JsonGenerationException, JsonMappingException, IOException{
 		log.info("Add new earnings...");
-		long id = outgoingsService.addOutgoing(label, amount, type);
+		long id = outgoingsService.addOutgoing(label, amount, type, null);
+		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		new ObjectMapper().writeValue(response.getOutputStream(),id);
+	}
+	
+	@RequestMapping(method=RequestMethod.PUT, value="/addToSheet/{label}/{amount}/{type}/{sheetId}")
+	public void addOutgoingToSheet(@PathVariable String label, @PathVariable int amount, @PathVariable String type, 
+							@PathVariable String sheetId, HttpServletResponse response) throws JsonGenerationException, JsonMappingException, IOException{
+		log.info("Add new earnings to sheet...");
+		long id = outgoingsService.addOutgoing(label, amount, type, sheetId);
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		new ObjectMapper().writeValue(response.getOutputStream(),id);
 	}

@@ -21,9 +21,14 @@ Logger log = Logger.getLogger(this.getClass().getName());
 		return outgoingsDao.getOutgoings(null);
 	}
 	
-	public long addOutgoing(String label, int amount, String type){
+	public long addOutgoing(String label, int amount, String type, String sheetId){
 		log.info("SRV : Add new outgoings");
-		return outgoingsDao.persistOutgoing(new Outgoing(null, label, amount, type));
+		Outgoing outgoing = new Outgoing(null, label, amount, type);
+		if(sheetId!=null){
+			log.info("SRV : Add to sheet : "+sheetId);
+			outgoing.setSheetId(sheetId);
+		}
+		return outgoingsDao.persistOutgoing(outgoing);
 	}
 
 	public boolean removeOutgoing(Long id) {

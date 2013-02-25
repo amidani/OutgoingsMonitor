@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.Index;
 
 @Entity
 public class Sheet {
@@ -13,7 +14,9 @@ public class Sheet {
 	@Id
 	private String id;
 	@JsonProperty
-	private String name;	
+	private String name;
+	@JsonProperty @Index
+	private String userId;
 	@Ignore
     List<Earning> earnings;	
 	@Ignore
@@ -38,6 +41,14 @@ public class Sheet {
 	public void setName(String name) {
 		this.name = name;
 	}
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
 	public List<Earning> getEarnings() {
 		return earnings;
 	}

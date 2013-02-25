@@ -1,23 +1,19 @@
 /*Home Controller*/
-App.controller('HomeCtrl', function SheetsCtrl($scope, $http){
+App.controller('HomeCtrl', function HomeCtrl($scope, $http, authenticationService){
 	$scope.loggedIn = false;
 	$scope.email = '';
-	$scope.iframeSrc = '';
-	this.checkAuth = function(){
-		var url = serverAddress+"auth/check";
-		$http({method: 'GET', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Logged "+data+"  Status "+status);
-	    	  $scope.loggedIn = true;
-	    	  $scope.email = data;
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  if(status=='401'){
-	    		  window.location = data;
-	    	  }
-	      });	
+	
+	authenticationService.checkAuth(this);
+	
+	this.updateValuesAfterLogin = function(loggedIn, email){
+		$scope.loggedIn = loggedIn;
+		$scope.email = email;
+	};
+		
+	$scope.disconnect = function(){
+		$scope.loggedIn = false;
+		$scope.email = '';
+		authenticationService.logout();
 	};
 	
-	this.checkAuth();
 });

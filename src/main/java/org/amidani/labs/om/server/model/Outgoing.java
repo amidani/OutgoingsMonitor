@@ -19,6 +19,8 @@ public class Outgoing {
 	private boolean spent; 
 	@JsonProperty @Index
 	private String sheetId;
+	@JsonProperty @Index
+	private String userId;
 	
 	public Outgoing(){}
 	
@@ -71,6 +73,14 @@ public class Outgoing {
 
 	public void setSheetId(String sheetId) {
 		this.sheetId = sheetId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 	
 	
