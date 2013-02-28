@@ -1,65 +1,74 @@
 /*Outgoing Controller*/
-App.controller('OutgoingsCtrl', function OutgoingsCtrl($scope, $http){
+App.controller('OutgoingsCtrl', function OutgoingsCtrl($scope, outgoingSrv){
 	
-	//Init
+	/**
+	 * Init
+	 */
     $scope.outgoings = []; 
+    $scope.errMsgOutgoing = '';
     
-    //Load data from WebSQL...
-	this.loadOutgoings = function(){
-		$scope.errMsgOutgoing = '';
-		var url = serverAddress+"outgoings/all";
-		$http({method: 'GET', url: url}).
-	      success(function(data, status) {
-	    	  console.log("List retrieved successfuly.");
-	    	  for (var i=0;i<data.length;i++){
-	    		  $scope.outgoings.push(data[i]);
-	      	  }
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	      });	
-	};
-	this.loadOutgoings();
+    /**
+     * Loading Outgoing
+     */
+    outgoingSrv.loadOutgoings();
     
+    $scope.$on( 'event:loadOutgoings',
+      function( event, outgoings ) {
+		console.log('NG-CTRL-Outgoing :: '+outgoings.length+'Outgoings retrieved.');
+		$scope.outgoings = outgoings;
+      }
+    );
+    
+    /**
+     * Add Outgoing
+     */
     $scope.addOutgoing = function (){
-    	if($scope.label=='' || $scope.amount==null){
-			$scope.errMsgOutgoing = 'Please make sure you fill all required inputs!';
-			return;
-		}
-    	//persistenceREST.addEarning($scope.label, $scope.amount);
-		var url = serverAddress+"outgoings/add/"+$scope.label+"/"+$scope.amount+"/"+$scope.type;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Outgoing added successfuly with id=["+data+"]");
-	    	  $scope.outgoings.push({id:data, label:$scope.label, amount:$scope.amount, type:$scope.type});
-	    	  $scope.label="";
-	      	  $scope.amount=null;
-	      	  $scope.type="";
-	      	  $scope.errMsgOutgoing = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgOutgoing = 'Service is unavailable for the moment.';
-	      });
+    	outgoingSrv.addOutgoing($scope.label, $scope.amount, $scope.type, null);
     };
+    
+    $scope.$on( 'event:addOutgoingSuccess',
+      function( event, outgoing ) {
+		 console.log('NG-CTRL-Outgoing :: New outgoing added successfuly: '+outgoing.id);
+		 $scope.outgoings.push(outgoing);
+		 $scope.label='';
+		 $scope.amount=null;
+		 $scope.type='';
+		 $scope.errMsgOutgoing = '';
+      }
+    );
+    
+    $scope.$on( 'event:addOutgoingFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Outgoing :: Failed to add new outgoing!');
+		$scope.label='';
+		$scope.amount = '';
+		$scope.type='';
+		$scope.errMsgOutgoing = msg;
+      }
+    );	
+    
+    /**
+     * Remove Outgoing
+     */
     
     $scope.removeOutgoing = function (outgoing){
-    	var url = serverAddress+"outgoings/delete/"+outgoing.id;
-		$http({method: 'DELETE', url: url}).
-	      success(function(data, status) {
-	    	  if(data){
-	    		  console.log("Outgoing deleted successfuly.");
-	    		  $scope.outgoings.splice($scope.outgoings.indexOf(outgoing), 1);
-	    		  $scope.errMsgOutgoing = '';
-	    	  }else{
-	    		  $scope.errMsgOutgoing = 'Unable to delete outgoing with id['+outgoing.id+'].';
-	    	  }  
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgOutgoing = 'Service is unavailable for the moment.';
-	      });
+    	outgoingSrv.removeOutgoing(outgoing);
     };
+    
+    $scope.$on( 'event:removeOutgoingSuccess',
+      function( event, outgoing ) {
+		 console.log('NG-CTRL-Outgoing :: Outgoing removed successfuly.');
+		 $scope.outgoings.splice($scope.outgoings.indexOf(outgoing), 1);
+		 $scope.errMsgOutgoing = '';
+      }
+    );
+    
+    $scope.$on( 'event:removeOutgoingFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Outgoing :: Failed to remove outgoing!');
+		$scope.errMsgOutgoing = msg;
+      }
+    );	
     
     $scope.getTotalMonthlyOutgoings = function (){
     	var sum = 0;

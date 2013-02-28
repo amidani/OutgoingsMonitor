@@ -18,7 +18,8 @@ App.service('authenticationService', function($rootScope, $http) {
 		$http({method: 'GET', url: url}).
 	      success(function(data, status) {
 	    	  console.log("Logged "+data+"  Status "+status);
-	    	  controller.updateValuesAfterLogin(true, data);
+	    	  $rootScope.$emit('event:authenticate', $scope.username, $scope.password);
+	    	  //controller.updateValuesAfterLogin(true, data);
 	      }).
 	      error(function(data, status) {
 	    	  console.log("Request failed [Status : "+status+"]");

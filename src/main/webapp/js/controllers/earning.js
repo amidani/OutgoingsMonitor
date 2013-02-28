@@ -1,63 +1,72 @@
 /*Earnings Controller*/
-App.controller('EarningsCtrl', function EarningsCtrl($scope, $http){
-	//Init
+App.controller('EarningsCtrl', function EarningsCtrl($scope, earningSrv){
+	/**
+	 *Init
+	 */
 	$scope.earnings =  [];
-	//Load data from WS REST...
-	this.loadEarnings = function(){
-		$scope.errMsgEarning = '';
-		var url = serverAddress+"earnings/all";
-		$http({method: 'GET', url: url}).
-	      success(function(data, status) {
-	    	  console.log("List retrieved successfuly.");
-	    	  for (var i=0;i<data.length;i++){
-	    		  $scope.earnings.push(data[i]);
-	      	  }
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	      });	
-	};
-	this.loadEarnings();
+	$scope.errMsgEarning = '';
+	
+	/**
+	 * Load Earnings	
+	 */
+	earningSrv.loadEarnings();
+	
+	$scope.$on( 'event:loadEarnings',
+      function( event, earnings ) {
+		console.log('NG-CTRL-Earning :: '+earnings.length+'Earnings retrieved.');
+		$scope.earnings = earnings;
+      }
+    );
+	
+	/**
+	 * Add Earning
+	 */
 	
 	$scope.addEarning = function (){
-		if($scope.label=='' || $scope.amount==null){
-			$scope.errMsgEarning = 'Please make sure you fill all required inputs!';
-			return;
-		}
-    	//persistenceREST.addEarning($scope.label, $scope.amount);
-		var url = serverAddress+"earnings/add/"+$scope.label+"/"+$scope.amount;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Earning added successfuly with id=["+data+"]");
-	    	  $scope.earnings.push({id:data, label:$scope.label, amount:$scope.amount});
-	    	  $scope.label="";
-	      	  $scope.amount=null;
-	      	  $scope.errMsgEarning = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgEarning = 'Service is unavailable for the moment.';
-	      });
+		earningSrv.addEarning($scope.label, $scope.amount, null);
     };
     
+    $scope.$on( 'event:addEarningSuccess',
+      function( event, earning ) {
+		console.log('NG-CTRL-Earning :: New earning added successfuly: '+earning.id);
+		$scope.earnings.push(earning);
+		$scope.label = '';
+		$scope.amount = '';
+		$scope.errMsgEarning = '';
+      }
+    );
+    
+    $scope.$on( 'event:addEarningFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Earning :: Failed to add new earning!');
+		$scope.label = '';
+		$scope.amount = '';
+		$scope.errMsgEarning = msg;
+      }
+    );	
+    
+    /**
+     * Remove Earning
+     */
+    
     $scope.removeEarning = function (earning){
-    	//persistenceREST.removeEarning(earning.id);
-    	var url = serverAddress+"earnings/delete/"+earning.id;
-		$http({method: 'DELETE', url: url}).
-	      success(function(data, status) {
-	    	  if(data){
-	    		  console.log("Earning deleted successfuly.");
-	    		  $scope.earnings.splice($scope.earnings.indexOf(earning), 1);
-	    		  $scope.errMsgEarning = '';
-	    	  }else{
-	    		  $scope.errMsgEarning = 'Unable to delete earning with id['+earning.id+'].';
-	    	  }  
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgEarning = 'Service is unavailable for the moment.';
-	      });
+    	earningSrv.removeEarning(earning);
     };
+    
+    $scope.$on( 'event:removeEarningSuccess',
+      function( event, earning ) {
+		console.log('NG-CTRL-Earning :: Earning removed successfuly: '+earning.id);
+		$scope.earnings.splice($scope.earnings.indexOf(earning), 1);
+		$scope.errMsgEarning = '';
+      }
+    );
+    
+    $scope.$on( 'event:removeEarningFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Earning :: Failed to remove earning!');
+		$scope.errMsgEarning = msg;
+      }
+    );	
     
     $scope.getTotalEarnings = function (){
     	var sum = 0;
@@ -66,10 +75,5 @@ App.controller('EarningsCtrl', function EarningsCtrl($scope, $http){
     	}
     	return sum;
     };
-    
-    this.pushEarning = function(earning){
-    	$scope.earnings.push(earning);
-    };
-	
 });
 

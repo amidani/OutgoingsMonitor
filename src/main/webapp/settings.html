@@ -11,6 +11,8 @@
     
     <script src="js/booter.js"></script>
     <script src="js/services/homeSRV.js"></script>
+    <script src="js/services/outgoingSRV.js"></script>
+    <script src="js/services/earningSRV.js"></script>
     <script src="js/controllers/home.js"></script>
     <script src="js/controllers/earning.js"></script>
     <script src="js/controllers/outgoing.js"></script>
@@ -19,10 +21,10 @@
     <link rel="stylesheet" href="css/bootstrap-responsive.css">
     <link rel="stylesheet" href="css/main.css">
   </head>
-  <body>
+  <body ng-controller="HomeCtrl">
   <div class="navbar">
   <div class="navbar-inner">
-    <div class="container" ng-controller="HomeCtrl">
+    <div class="container">
  
       <!-- Be sure to leave the brand out there if you want it shown -->
       <a class="brand" href="index.html">Outgoings Monitor</a>
@@ -43,7 +45,7 @@
 </div>
 
 <div class="container-fluid">
-	<div ng-controller="HomeCtrl">
+	<div>
 		<i class="icon-user"></i>&nbsp;You're logged as <b>{{email}}</b>
 	</div>
 	<br/>
@@ -58,7 +60,7 @@
 			    	<div ng-controller="EarningsCtrl" class="span7">
 			    		<div ng-show="errMsgEarning != ''" class="alert alert-error">
 			    			<button type="button" class="close" data-dismiss="alert">&times;</button>
-							<strong>Attention!</strong>{{errMsgEarning}}
+							<strong>Attention!</strong>&nbsp;{{errMsgEarning}}
 						</div>
 				     	<form class="form-inline">
 					      	<label><b>Label</b></label>
@@ -84,6 +86,10 @@
 			<div class="tab-pane" id="outg">
 				<div class="row" style="margin-left:30px;">
 					<div ng-controller="OutgoingsCtrl" class="span8">
+						<div ng-show="errMsgOutgoing != ''" class="alert alert-error">
+			    			<button type="button" class="close" data-dismiss="alert">&times;</button>
+							<strong>Attention!</strong>&nbsp;{{errMsgOutgoing}}
+						</div>
 				     	<form class="form-inline">
 					      	<label><b>Label</b></label>
 					      	<input type="text" ng-model="label" placeholder="Enter a label here"/>

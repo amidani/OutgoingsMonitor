@@ -1,144 +1,165 @@
 /*Sheets Controller*/
-App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationService){
-	$scope.currentSheet;
+App.controller('SheetsCtrl', function SheetsCtrl($scope, sheetSrv, earningSrv, outgoingSrv){
+	$scope.currentSheet = null;
 	$scope.sheetId;
 	
 	var dt=new Date();
-	$scope.currentMonth = mthNames[dt.getMonth()]+" "+dt.getFullYear();
+	$scope.currentMonth = $scope.mthNames[dt.getMonth()]+" "+dt.getFullYear();
 	$scope.errMsgSheet = '';
 	$scope.warnMsgSheet = '';
 	
-	//authenticationService.checkAuth(this);
+	/**
+	 * Load Current Sheet
+	 */	
+	sheetSrv.loadCurrentSheet();
 	
-	//Load data from WS REST...
-	this.loadCurrentSheet = function(){
+	$scope.$on( 'event:currentSheetSuccess',
+      function( event, currentSheet ) {
+		if(currentSheet!=null){
+		 console.log('NG-CTRL-Sheet :: Current sheet retrieved successfuly: '+currentSheet.id);
+		 $scope.currentSheet = currentSheet;
+	   	 $scope.sheetId = currentSheet.id;
+	   	 $scope.warnMsgSheet = '';
+		}else{
+			$scope.warnMsgSheet = 'No sheet added for the current month!';
+		}
+      }
+    );
+	
+	$scope.$on( 'event:currentSheetFailure',
+	  function( event, msg ) {
 		$scope.warnMsgSheet = '';
-		var url = serverAddress+"sheets/current/";
-		$http({method: 'GET', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Current sheet retrieved successfuly.");
-	    	  $scope.currentSheet = data;
-	    	  $scope.sheetId = data.id;
-	    	  $scope.warnMsgSheet = (data.id==null?'No sheet added for the current month!':'');
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	      });	
-	};
-	
-	this.loadCurrentSheet();
+		$scope.errMsgSheet = msg;		
+	  }
+	);
 	
 	$scope.addSheet = function (){
-		var url = serverAddress+"sheets/add/"+$scope.currentMonth;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  $scope.currentSheet = data;
-	    	  $scope.sheetId = data.id;
-	    	  console.log("Sheet added successfuly with id=["+data.id+"]");
-	    	  $scope.warnMsgSheet = (data.id==null?'No sheet added for the current month!':'');
-	      	  $scope.errMsgSheet = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
-    };
-    /*Sheet's Earnings*/
-    $scope.addEarning = function (){
-		if($scope.label=='' || $scope.amount==null){
-			$scope.warnMsgSheet = 'Please make sure you fill all required inputs!';
-			return;
-		}
-    	//persistenceREST.addEarning($scope.label, $scope.amount);
-		var url = serverAddress+"earnings/addToSheet/"+$scope.label+"/"+$scope.amount+"/"+$scope.sheetId;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Earning added to the current successfuly with id=["+data+"]");
-	    	  $scope.currentSheet.earnings.push({id:data, label:$scope.label, amount:$scope.amount, sheetId:$scope.sheetId});
-	    	  $scope.label="";
-	      	  $scope.amount=null;
-	      	  $scope.errMsgSheet = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
-    };
-    $scope.removeEarning = function (earning){
-    	var url = serverAddress+"earnings/delete/"+earning.id;
-		$http({method: 'DELETE', url: url}).
-	      success(function(data, status) {
-	    	  if(data){
-	    		  console.log("Earning deleted successfuly.");
-	    		  $scope.currentSheet.earnings.splice($scope.currentSheet.earnings.indexOf(earning), 1);
-	    		  $scope.errMsgSheet = '';
-	    	  }else{
-	    		  $scope.errMsgSheet = 'Unable to delete earning with id['+earning.id+'].';
-	    	  }  
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
+		sheetSrv.addSheet($scope.currentMonth);
     };
     
-    /*Sheet's Outgoings*/   
-    $scope.addOutgoing = function (){
-    	if($scope.label=='' || $scope.amount==null){
-			$scope.warnMsgSheet = 'Please make sure you fill all required inputs!';
-			return;
-		}
-    	//persistenceREST.addEarning($scope.label, $scope.amount);
-		var url = serverAddress+"outgoings/addToSheet/"+$scope.label+"/"+$scope.amount+"/"+$scope.type+"/"+$scope.sheetId;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Outgoing added successfuly with id=["+data+"]");
-	    	  $scope.currentSheet.outgoings.push({id:data, label:$scope.label, amount:$scope.amount, type:$scope.type, sheetId:$scope.sheetId, spent:false});
-	    	  $scope.label="";
-	      	  $scope.amount=null;
-	      	  $scope.type="";
-	      	  $scope.errMsgSheet = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
+    $scope.$on( 'event:addSheetSuccess',
+      function( event, newSheet ) {
+		 console.log('NG-CTRL-Sheet :: New sheet added successfuly: '+newSheet.id);
+		 $scope.currentSheet = newSheet;
+	   	 $scope.sheetId = newSheet.id;
+	   	 $scope.warnMsgSheet = (newSheet.id==null?'No sheet added for the current month!':'');
+      }
+    );
+    
+    $scope.$on( 'event:addSheetFailure',
+      function( event, msg ) {
+		 console.log('NG-CTRL-Sheet :: Failed to add new sheet.');
+	   	 $scope.errMsgSheet = msg;
+      }
+    );
+    
+    /**
+     * Sheet's Earnings
+     */
+    $scope.addEarning = function (){
+    	earningSrv.addEarning($scope.label, $scope.amount, $scope.sheetId);
     };
+    
+    $scope.$on( 'event:addEarningSuccess',
+      function( event, earning ) {
+		console.log('NG-CTRL-Sheet :: New earning added to sheet successfuly: '+earning.id);
+		$scope.currentSheet.earnings.push(earning);
+		$scope.label = '';
+		$scope.amount = '';
+		$scope.errMsgSheet = '';
+      }
+    );
+    
+    $scope.$on( 'event:addEarningFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Sheet :: Failed to add new earning to the sheet!');
+		$scope.label = '';
+		$scope.amount = '';
+		$scope.errMsgSheet = msg;
+      }
+    );	
+    
+    $scope.removeEarning = function (earning){
+    	earningSrv.removeEarnings(earning);
+    };
+    
+    $scope.$on( 'event:removeEarningSuccess',
+      function( event, earning ) {
+		console.log('NG-CTRL-Sheet :: Earning removed from sheet successfuly: '+earning.id);
+		$scope.currentSheet.earnings.splice($scope.currentSheet.earnings.indexOf(earning), 1);
+		$scope.errMsgSheet = '';
+      }
+    );
+    
+    $scope.$on( 'event:removeEarningFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Earning :: Failed to remove earning from sheet!');
+		$scope.errMsgSheet = msg;
+      }
+    );	
+    
+    /**
+     * Sheet's Outgoings
+     */   
+    $scope.addOutgoing = function (){
+    	 outgoingSrv.addOutgoing($scope.label, $scope.amount, $scope.type, $scope.sheetId);
+    };
+    
+    $scope.$on( 'event:addOutgoingSuccess',
+      function( event, outgoing ) {
+		 console.log('NG-CTRL-Sheet :: New outgoing added to the successfuly: '+outgoing.id);
+		 $scope.currentSheet.outgoings.push(outgoing);
+		 $scope.label='';
+		 $scope.amount=null;
+		 $scope.type='';
+		 $scope.errMsgSheet = '';
+      }
+    );
+    
+    $scope.$on( 'event:addOutgoingFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Sheet :: Failed to add new outgoing to sheet!');
+		$scope.label='';
+		$scope.amount = '';
+		$scope.type='';
+		$scope.errMsgSheet = msg;
+      }
+    );
     
     $scope.removeOutgoing = function (outgoing){
-    	var url = serverAddress+"outgoings/delete/"+outgoing.id;
-		$http({method: 'DELETE', url: url}).
-	      success(function(data, status) {
-	    	  if(data){
-	    		  console.log("Outgoing deleted successfuly.");
-	    		  $scope.currentSheet.outgoings.splice($scope.currentSheet.outgoings.indexOf(outgoing), 1);
-	    		  $scope.errMsgSheet = '';
-	    	  }else{
-	    		  $scope.errMsgSheet = 'Unable to delete outgoing with id['+outgoing.id+'].';
-	    	  }  
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
+    	outgoingSrv.removeOutgoing(outgoing);
     };
     
+    $scope.$on( 'event:removeOutgoingSuccess',
+      function( event, outgoing ) {
+		 console.log('NG-CTRL-Sheet :: Outgoing removed from sheetsuccessfuly.');
+		 $scope.currentSheet.outgoings.splice($scope.currentSheet.outgoings.indexOf(outgoing), 1);
+		 $scope.errMsgSheet = '';
+      }
+    );
+    
+    $scope.$on( 'event:removeOutgoingFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Sheet :: Failed to remove outgoing from the sheet!');
+		$scope.errMsgSheet = msg;
+      }
+    );
+    
     $scope.markOutgoingAsSpent = function (outgoing){
-		var url = serverAddress+"sheets/markspent/"+outgoing.id;
-		$http({method: 'PUT', url: url}).
-	      success(function(data, status) {
-	    	  console.log("Outgoing marked as spent successfuly with id=["+outgoing.id+"]");
-	      	  $scope.errMsgSheet = '';
-	      }).
-	      error(function(data, status) {
-	    	  console.log("Request failed [Status : "+status+"]");
-	    	  $scope.errMsgSheet = 'Service is unavailable for the moment.';
-	      });
+		sheetSrv.markAsSpent(outgoing);
     };  
+    
+    $scope.$on( 'event:markAsSpentFailure',
+      function( event, msg ) {
+		console.log('NG-CTRL-Sheet :: Failed to mark outgoing as spent!');
+		$scope.errMsgSheet = msg;
+		
+      }
+    );
     
     $scope.getTotalEarnings = function (){
     	var sum = 0;
-    	if($scope.currentSheet){
+    	if($scope.currentSheet!=null){
 	    	for (var i=0;i<$scope.currentSheet.earnings.length;i++){
 	    		sum+=$scope.currentSheet.earnings[i].amount;
 	    	}
@@ -148,7 +169,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationSe
     
     $scope.getTotalMonthlyOutgoings = function (){
     	var sum = 0;
-    	if($scope.currentSheet){
+    	if($scope.currentSheet!=null){
 	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
 	    		if($scope.currentSheet.outgoings[i].type==="M")
 	    			sum+=$scope.currentSheet.outgoings[i].amount;
@@ -159,7 +180,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationSe
     
     $scope.getTotalOtherOutgoings = function (){
     	var sum = 0;
-    	if($scope.currentSheet){
+    	if($scope.currentSheet!=null){
 	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
 	    		if($scope.currentSheet.outgoings[i].type==="O")
 	    			sum+=$scope.currentSheet.outgoings[i].amount;
@@ -170,7 +191,7 @@ App.controller('SheetsCtrl', function SheetsCtrl($scope, $http, authenticationSe
     
     $scope.getTotalSpentOutgoings = function (flag){
     	var sum = 0;
-    	if($scope.currentSheet){
+    	if($scope.currentSheet!=null){
 	    	for (var i=0;i<$scope.currentSheet.outgoings.length;i++){
 	    		if($scope.currentSheet.outgoings[i].spent===flag)
 	    			sum+=$scope.currentSheet.outgoings[i].amount;
